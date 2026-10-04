@@ -58,7 +58,7 @@ function add_cache_event_toasts() {
     }, false);
 
     appCache.addEventListener('error', function (e) {
-        showToast('★ Cache error');
+        //showToast('★ Cache error');
     }, false);
 
     appCache.addEventListener('updateready', function (e) {
