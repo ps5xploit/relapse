@@ -558,8 +558,7 @@ async function sendElfToElfldr(name, payload, p, chain) {
 }
 
 /**
- * Send kstuff, shadowmountplus and pldmgr to the elfldr, one per socket
- * connection, with a configurable delay between payloads.
+ * Send pldmgr to the elfldr.
  *
  * @param {object} p        userland read/write primitive
  * @param {object} chain    ROP worker
@@ -574,30 +573,14 @@ export async function loadOptionalPayloads(p, chain, log, options = {}) {
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const say = typeof log === "function" ? log : () => {};
 
-  say("Loading payloads... Please wait");
+  say("Loading payload... Please wait");
 
-  const kstuff = await mapElfIntoUserland("kstuff.elf", p, chain, config);
-  const shadowmount = await mapElfIntoUserland(
-    "shadowmountplus.elf",
-    p,
-    chain,
-    config,
-  );
   const etaHEN = await mapElfIntoUserland("pldmgr.elf", p, chain, config);
 
-  // 1) kstuff
-  await sendElfToElfldr("kstuff.elf", kstuff, p, chain);
-  await sleep(delayMs);
-
-  // 2) shadowmountplus
-  await sendElfToElfldr("shadowmountplus.elf", shadowmount, p, chain);
-  await sleep(delayMs);
-
-  // 3) pldmgr (etaHEN)
   await sendElfToElfldr("pldmgr.elf", etaHEN, p, chain);
   await sleep(delayMs);
 
-  say("all payloads loaded");
+  say("payload loaded");
 }
 
 // ---- entry point ------------------------------------------------------------
