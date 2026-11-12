@@ -110,6 +110,11 @@ async function run() {
   if (cachePending) {
     writeLog("Waiting for cache...", "info");
     await waitForAppCache(6000);
+    // El aviso "Successfully" sale 1 s despues del evento cached: dejamos que
+    // se muestre y que el navegador termine de asentar la cache antes del exploit.
+    await new Promise(function (resolve) {
+      setTimeout(resolve, 1500);
+    });
     writeLog("Cache ready", "success");
   }
   writeLog("Credits: ntfargo, ufm42, Sonic_Iso, Jordy, TheFlow, SlidyBat, Flatz, cow, nhk, bollarz, Sleirsgoevy, EchoStretch, EarthOnion");
