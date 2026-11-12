@@ -75,24 +75,25 @@ function getWebKitBase() {
   throw new Error("WebKit base not found");
 }
 
-// Espera a que el appcache termine de guardar la pagina (hasta timeoutMs).
+// Espera a que el appcache termine (hasta timeoutMs) y devuelve el motivo:
+// "idle" | "cached" | "noupdate" | "updateready" | "error" | "timeout".
 function waitForAppCache(timeoutMs) {
   return new Promise(function (resolve) {
     const ac = window.applicationCache;
-    if (!ac) return resolve();
-    if (ac.status === ac.IDLE || ac.status === ac.UPDATEREADY) return resolve();
+    if (!ac) return resolve("none");
+    if (ac.status === ac.IDLE || ac.status === ac.UPDATEREADY) return resolve("idle");
 
     let done = false;
-    function finish() {
+    function finish(reason) {
       if (done) return;
       done = true;
-      resolve();
+      resolve(reason);
     }
-    ac.addEventListener("cached", finish);
-    ac.addEventListener("noupdate", finish);
-    ac.addEventListener("updateready", finish);
-    ac.addEventListener("error", finish);
-    setTimeout(finish, timeoutMs);
+    ac.addEventListener("cached", function () { finish("cached"); });
+    ac.addEventListener("noupdate", function () { finish("noupdate"); });
+    ac.addEventListener("updateready", function () { finish("updateready"); });
+    ac.addEventListener("error", function () { finish("error"); });
+    setTimeout(function () { finish("timeout"); }, timeoutMs);
   });
 }
 
@@ -100,22 +101,21 @@ async function run() {
   const rejection = window.firmware.rejection();
   if (rejection)
     throw new Error(rejection);
-  const appCache = window.applicationCache;
-  const cachePending =
-    appCache &&
-    document.documentElement.hasAttribute("manifest") &&
-    appCache.status !== appCache.IDLE &&
-    appCache.status !== appCache.UPDATEREADY;
-
-  if (cachePending) {
+  // Si la pagina declara manifiesto, esperamos SIEMPRE: al arrancar el status
+  // suele ser UNCACHED (aun no ha empezado la comprobacion) y antes nos lo
+  // saltabamos, lanzando el exploit mientras se guardaba la cache.
+  if (window.applicationCache && document.documentElement.hasAttribute("manifest")) {
     writeLog("Waiting for cache...", "info");
-    await waitForAppCache(6000);
-    // El aviso "Successfully" sale 1 s despues del evento cached: dejamos que
-    // se muestre y que el navegador termine de asentar la cache antes del exploit.
-    await new Promise(function (resolve) {
-      setTimeout(resolve, 1500);
-    });
-    writeLog("Cache ready", "success");
+    const cacheReason = await waitForAppCache(15000);
+
+    // Solo cuando se ha escrito cache nueva aparece el aviso "Successfully"
+    // (1 s despues del evento); dejamos que salga antes del exploit.
+    if (cacheReason === "cached" || cacheReason === "updateready") {
+      await new Promise(function (resolve) {
+        setTimeout(resolve, 1500);
+      });
+    }
+    writeLog(cacheReason === "error" ? "Cache error" : "Cache ready", cacheReason === "error" ? "error" : "success");
   }
   writeLog("Credits: ntfargo, ufm42, Sonic_Iso, Jordy, TheFlow, SlidyBat, Flatz, cow, nhk, bollarz, Sleirsgoevy, EchoStretch, EarthOnion");
   writeLog(`Agent: ${navigator.userAgent}`);
