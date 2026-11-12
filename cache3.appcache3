@@ -1,22 +1,10 @@
 CACHE MANIFEST
-# version 2026-11-13 01:50 #
-
+# version 2026-11-13 02:05 #
+fondo.jpg
 appcache_handler.js
 custom_host_stuff.js
 index.html
 README.md
-fondo.jpg
-src/firmware.js
-src/kexp.js
-src/main.js
-src/relapse_exploit.js
-src/rop.js
-src/site.js
-src/webkit.js
-src/utils/int64.js
-src/utils/mem.js
-src/utils/rop_slave.js
-src/utils/syscalls.js
 offsets/10.00.js
 offsets/10.01.js
 offsets/10.20.js
@@ -53,6 +41,17 @@ offsets/9.60.js
 payloads/elfldr-ps5-1360.elf
 payloads/kexp_2026_05_25.bin
 payloads/pldmgr.elf
+src/firmware.js
+src/kexp.js
+src/main.js
+src/relapse_exploit.js
+src/rop.js
+src/site.js
+src/webkit.js
+src/utils/int64.js
+src/utils/mem.js
+src/utils/rop_slave.js
+src/utils/syscalls.js
 
 NETWORK:
 *
