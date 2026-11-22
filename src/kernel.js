@@ -637,6 +637,45 @@ function jailbreak() {
   logger.info('Achieved jailbreak !!');
 }
 
+// ---- arranque del sistema -------------------------------------------------
+// kern.boottime (CTL_KERN=1, KERN_BOOTTIME=21) devuelve struct timeval:
+// tv_sec (int64) + tv_usec (int64). Se usa para saber si el exploit ya se
+// lanzo en ESTE arranque aunque se haya cerrado y reabierto el navegador.
+const BOOT_KEY = 'wobkot.boottime';
+
+function read_boottime() {
+  try {
+    const mib = new Uint32Array([1, 21]);
+    const out = new Uint32Array(4);
+    const len = new Uint32Array([out.byteLength]);
+
+    if (fn.sysctl.invoke(mib.buffer.data(), mib.length, out.buffer.data(), len.buffer.data(), 0, 0) === -1) {
+      return null;
+    }
+
+    return out[0] + out[1] * 4294967296;
+  } catch (error) {
+    return null;
+  }
+}
+
+function saved_boottime() {
+  try {
+    const raw = localStorage.getItem(BOOT_KEY);
+    return raw === null ? null : Number(raw);
+  } catch (error) {
+    return null;
+  }
+}
+
+function save_boottime(value) {
+  try {
+    if (value !== null) {
+      localStorage.setItem(BOOT_KEY, String(value));
+    }
+  } catch (error) {}
+}
+
 async function kernel_main() {
   logger.info('===KERNEL===');
 
@@ -644,15 +683,30 @@ async function kernel_main() {
   // parcheado. Volver a lanzar el exploit (y el kexp.bin) sobre ese estado
   // puede corromper el sistema, asi que solo cargamos el payload manager en
   // el elfldr que ya deberia estar escuchando en el 9021.
-  if (fn.setuid.invoke(0) === 0) {
+  if (fn.setuid.invoke(0) === 0 || probe_elfldr()) {
     logger.info('Already jailed (elfldr up), skipping kernel exploit');
     logger.info('===END===');
     return;
   }
 
+  const boottime = read_boottime();
+  const previous = saved_boottime();
+
+  logger.info(`boottime=${boottime} previous=${previous}`);
+
+  // El exploit ya se lanzo en este mismo arranque y el elfldr ya no esta:
+  // volver a lanzarlo puede corromper el kernel. Solo se puede reiniciar.
+  if (boottime !== null && previous !== null && boottime === previous) {
+    logger.error('Exploit already run on this boot. Restart the system to run it again.');
+    throw new Error('exploit already run on this boot; restart the system');
+  }
 
   await exploit();
 
+  // A partir de aqui el kernel ya esta tocado: marcamos este arranque para no
+  // volver a lanzar el exploit aunque falle la carga del payload.
+  save_boottime(boottime);
+  logger.info(`saved boottime=${boottime}`);
 
   find_all_proc();
 
@@ -664,7 +718,6 @@ async function kernel_main() {
 
     await post_jailbreak();
   }
-
 
   logger.info('===END===');
 }

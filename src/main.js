@@ -59,10 +59,6 @@ function load_script(src) {
     script.onerror = () => {
       reject(new Error(`Failed to load script: ${src}`));
     };
-    // Sin timeout, offline un script que no llega deja el motor colgado.
-    setTimeout(() => {
-      reject(new Error(`Timeout loading script: ${src}`));
-    }, 30000);
     document.head.appendChild(script);
   });
 }
