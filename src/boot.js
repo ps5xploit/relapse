@@ -110,6 +110,12 @@ function waitForAppCache(timeoutMs) {
 }
 
 async function boot() {
+  // Espera silenciosa: si el appcache esta descargando, no cargamos el motor
+  // a la vez (los scripts pueden tardar y saltar el timeout).
+  if (window.applicationCache && document.documentElement.hasAttribute("manifest")) {
+    await waitForAppCache(20000);
+  }
+
 
 
   try {

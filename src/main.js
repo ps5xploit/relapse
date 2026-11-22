@@ -62,7 +62,7 @@ function load_script(src) {
     // Sin timeout, offline un script que no llega deja el motor colgado.
     setTimeout(() => {
       reject(new Error(`Timeout loading script: ${src}`));
-    }, 10000);
+    }, 30000);
     document.head.appendChild(script);
   });
 }
