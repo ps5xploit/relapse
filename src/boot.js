@@ -110,6 +110,27 @@ function waitForAppCache(timeoutMs) {
 }
 
 async function boot() {
+  let alreadyExploited = null;
+  try {
+    alreadyExploited = sessionStorage.getItem("wobkot.exploited");
+  } catch (error) {}
+
+  if (alreadyExploited === "1") {
+    // En un navegador normal solo lo dejamos en el log, sin cartel.
+    if (!/PlayStation\s+5/.test(navigator.userAgent)) {
+      writeLog("Only for PS5", "error");
+      return;
+    }
+
+    writeLog("Jailbreak is running! Restart the system to run it again.", "success");
+    showBanner("Jailbreak is running!\n\nRestart the system to run it again.");
+    return;
+  }
+
+  try {
+    sessionStorage.setItem("wobkot.exploited", "1");
+  } catch (error) {}
+
   if (window.applicationCache && document.documentElement.hasAttribute("manifest")) {
     writeLog("Waiting for cache...", "info");
     const reason = await waitForAppCache(15000);

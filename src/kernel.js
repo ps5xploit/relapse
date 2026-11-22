@@ -699,6 +699,11 @@ async function kernel_main() {
   // volver a lanzarlo puede corromper el kernel. Solo se puede reiniciar.
   if (boottime !== null && previous !== null && boottime === previous) {
     logger.error('Exploit already run on this boot. Restart the system to run it again.');
+    if (typeof showBanner === 'function') {
+      showBanner('Exploit already run on this boot.\n\nRestart the system to run it again.');
+    } else {
+      alert('Restart the system to launch the exploit again.');
+    }
     throw new Error('exploit already run on this boot; restart the system');
   }
 
