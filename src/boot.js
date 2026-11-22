@@ -110,22 +110,6 @@ function waitForAppCache(timeoutMs) {
 }
 
 async function boot() {
-  if (window.applicationCache && document.documentElement.hasAttribute("manifest")) {
-    writeLog("Waiting for cache...", "info");
-    const reason = await waitForAppCache(15000);
-
-    // Solo cuando se ha escrito cache nueva sale el aviso "Successfully"
-    // (1 s despues del evento); dejamos que aparezca antes del exploit.
-    if (reason === "cached" || reason === "updateready") {
-      await new Promise(function (resolve) {
-        setTimeout(resolve, 1500);
-      });
-    }
-    writeLog(
-      reason === "error" ? "Cache error" : "Cache ready",
-      reason === "error" ? "error" : "success",
-    );
-  }
 
   try {
     await loadScript("./src/main.js");
