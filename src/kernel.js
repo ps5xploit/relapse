@@ -644,7 +644,7 @@ async function kernel_main() {
   // parcheado. Volver a lanzar el exploit (y el kexp.bin) sobre ese estado
   // puede corromper el sistema, asi que solo cargamos el payload manager en
   // el elfldr que ya deberia estar escuchando en el 9021.
-  if (fn.setuid.invoke(0) === 0 || probe_elfldr()) {
+  if (fn.setuid.invoke(0) === 0) {
     logger.info('Already jailed (elfldr up), skipping kernel exploit');
     logger.info('===END===');
     return;
