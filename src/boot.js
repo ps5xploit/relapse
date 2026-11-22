@@ -110,29 +110,6 @@ function waitForAppCache(timeoutMs) {
 }
 
 async function boot() {
-  // Si el exploit ya se lanzo en esta sesion de navegador, no volvemos a
-  // cargar el motor: el userland puede caer por el estado que dejo la
-  // ejecucion anterior. Hace falta reiniciar la consola.
-  let alreadyExploited = null;
-  try {
-    alreadyExploited = sessionStorage.getItem("wobkot.exploited");
-  } catch (error) {}
-
-  if (alreadyExploited === "1") {
-    // En un navegador normal solo lo dejamos en el log, sin cartel.
-    if (!/PlayStation\s+5/.test(navigator.userAgent)) {
-      writeLog("Only for PS5", "error");
-      return;
-    }
-
-    writeLog("Jailbreak is running! Restart the system to run it again.", "success");
-    return;
-  }
-
-  try {
-    sessionStorage.setItem("wobkot.exploited", "1");
-  } catch (error) {}
-
   if (window.applicationCache && document.documentElement.hasAttribute("manifest")) {
     writeLog("Waiting for cache...", "info");
     const reason = await waitForAppCache(15000);
