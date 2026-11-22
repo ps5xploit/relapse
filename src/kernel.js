@@ -676,6 +676,14 @@ function save_boottime(value) {
   } catch (error) {}
 }
 
+// Recordatorio de como lanzar el exploit sin internet (basta una interfaz
+// de red; con estas DNS el navegador la da por conectada).
+function log_offline_hint() {
+  logger.info('To run exploit offline, connect to a network.');
+  logger.info('Primary DNS: 127.0.0.2');
+  logger.info('Secondary DNS: 0.0.0.0');
+}
+
 async function kernel_main() {
   logger.info('===KERNEL===');
 
@@ -685,6 +693,7 @@ async function kernel_main() {
   // el elfldr que ya deberia estar escuchando en el 9021.
   if (fn.setuid.invoke(0) === 0 || probe_elfldr()) {
     logger.info('Already jailed (elfldr up), skipping kernel exploit');
+    log_offline_hint();
     logger.info('===END===');
     return;
   }
@@ -718,6 +727,8 @@ async function kernel_main() {
 
     await post_jailbreak();
   }
+
+  log_offline_hint();
 
   logger.info('===END===');
 }
